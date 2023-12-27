@@ -650,15 +650,15 @@ def evaluate_for_target_entity_names(
     groundtruth_num += len(matched_pairs) + len(unmatched_groundtruth)
     extractions_num += len(matched_pairs) + len(unmatched_extractions)
 
-  if extractions_num == 0:
-    pre = rec = f1 = 0
-  elif groundtruth_num == 0:
+  if groundtruth_num == 0:
     # When there is no groundtruth for the entity name, the result is set as -1,
     # and this should be skipped in the final report. This happens when some
     # entity names do not appear in certain templates.
-    pre = 0
-    rec = 1
-    f1 = 0
+    pre = -1
+    rec = -1
+    f1 = -1
+  elif extractions_num == 0:
+    pre = rec = f1 = 0    
   elif correct_num == 0:
     pre = rec = f1 = 0
   else:
