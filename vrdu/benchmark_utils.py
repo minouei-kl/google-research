@@ -355,6 +355,13 @@ def group_repeated_entities_into_nested_entities(
     The repeated entities with the nested entity names will be grouped into
     several nested entities and other entities will remain unchanged.
   """
+  order = {
+    "channel": 1,
+    "program_start_date": 2,
+    "program_end_date": 3,
+    "program_desc": 4,
+    "sub_amount": 5
+  }
   unchanged_entity_items = []
   repeated_entity_items = []
 
@@ -382,6 +389,7 @@ def group_repeated_entities_into_nested_entities(
 
     nested_entity_items = []
     for entity_group in repeated_entity_groups:
+      entity_group = sorted(entity_group, key=lambda x: order.get(x[0]))
       # The format of entity item:
       # (entity_name, (entity_text, entity_bbox, entity_segments))
       nested_entity_name = tuple(item[0] for item in entity_group)
@@ -391,6 +399,33 @@ def group_repeated_entities_into_nested_entities(
     all_entity_items = unchanged_entity_items + nested_entity_items
 
   return all_entity_items
+
+
+def sort_data(data):
+  order = {
+      "channel": 1,
+      "program_start_date": 2,
+      "program_end_date": 3,
+      "program_desc": 4,
+      "sub_amount": 5
+  }
+  # Extract the header and data rows
+  header, rows = data
+
+  # Create a new order for the header based on the 'order' dictionary
+  new_header = sorted(header, key=lambda x: order[x])
+
+  # Create a dictionary for index mapping
+  index_map = {v: i for i, v in enumerate(header)}
+
+  # Reorder each row according to the new header order
+  new_rows = []
+  for row in rows:
+    new_row = [row[index_map[field]] for field in new_header]
+    new_rows.append(tuple(new_row))
+
+  # Return the sorted data
+  return (tuple(new_header), new_rows)
 
 
 def get_matching_result_per_doc(
@@ -475,6 +510,8 @@ def get_matching_result_per_doc(
   ex_dict = collections.defaultdict(list)
 
   for gt_entity_item in filtered_doc_groundtruth:
+    if type(gt_entity_item[0]) is tuple:
+      gt_entity_item = sort_data(gt_entity_item)
     gt_dict[gt_entity_item[0]] += [gt_entity_item]
 
   for ex_entity_item in filtered_doc_extractions:
